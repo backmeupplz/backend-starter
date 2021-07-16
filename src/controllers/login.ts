@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { Context } from 'koa'
 import { getOrCreateUser } from '@/models/user'
-import { Controller, Ctx, Post } from 'amala'
+import { Body, Controller, Ctx, Post } from 'amala'
 import Facebook = require('facebook-node-sdk')
 import { verifyTelegramPayload } from '@/helpers/verifyTelegramPayload'
 
@@ -53,6 +53,15 @@ export default class LoginController {
       email: userData.email,
     })
     return user.strippedAndFilled(true)
+  }
+
+  @Post('/email')
+  async email(@Body('email') email) {
+    const user = await getOrCreateUser({
+      name: email.split('@')[0],
+      email,
+    })
+    return user
   }
 }
 
