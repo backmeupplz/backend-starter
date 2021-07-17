@@ -4,9 +4,20 @@ import { getOrCreateUser } from '@/models/user'
 import { Controller, Ctx, Post } from 'amala'
 import Facebook = require('facebook-node-sdk')
 import { verifyTelegramPayload } from '@/helpers/verifyTelegramPayload'
+import { auth } from '@/middlewares/auth'
 
 @Controller('/login')
 export default class LoginController {
+  @Post('/email')
+  async email(@Ctx() ctx: Context) {
+    const user = await getOrCreateUser({
+      name: ctx.request.body.author.name,
+      email: ctx.request.body.author.email,
+    })
+    ctx.cookies.set('jwt', user.token)
+    return user.strippedAndFilled(true)
+  }
+
   @Post('/facebook')
   async facebook(@Ctx() ctx: Context) {
     const fbProfile: any = await getFBUser(ctx.request.body.accessToken)
@@ -22,7 +33,6 @@ export default class LoginController {
   @Post('/telegram')
   async telegram(@Ctx() ctx: Context) {
     const data = ctx.request.body
-    // verify the data
     if (!verifyTelegramPayload(data)) {
       return ctx.throw(403)
     }
